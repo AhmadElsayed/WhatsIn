@@ -1,0 +1,99 @@
+﻿@model WhatsIn.Models.AnalyticsModel
+@using Newtonsoft.Json;
+@{
+    ViewData["Title"] = "Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    td{
+        border: solid 1px;
+    }
+</style>
+<h1>What's in the Chat Report</h1>
+<div class="row">
+    <div class="col-md-4">
+        <div id="divUserCounts" style="height: 100%"></div>
+    </div>
+    <div class="col-md-8">
+        <div class="row">
+            <div class="col-md-12">
+                <div id="divHourRate"></div>
+            </div>
+            <div class="col-md-12">
+                <div id="divDataOverDate"></div>
+
+            </div>
+        </div>
+    </div>
+
+    @*<div class="col-md-6">
+        </div>*@
+
+    <div class="col-md-6">
+        <div id="">
+        </div>
+    </div>
+
+    <div class="col-md-12">
+        <div id="divWeekDaysHours"></div>
+    </div>
+
+    <div class="col-md-12">
+        <table class="table table-bordered" style="width: 100%" >
+            @foreach (var item in Model.UserWords)
+            {
+            <tr>
+                <td style="width: 20%">
+                    @item.Key
+                </td>
+                <td>
+                    @foreach (var word in item.Value)
+                    {
+                        var indx = word.Value % 4;
+                        switch (indx)
+                        {
+                            case 0:
+                                <span class="badge badge-danger">@word.Key (@word.Value)</span>
+                                break;
+                            case 1:
+                                <span class="badge badge-primary">@word.Key (@word.Value)</span>
+                                break;
+                            case 2:
+                                <span class="badge badge-success">@word.Key (@word.Value)</span>
+                                break;
+                            case 3:
+                                <span class="badge badge-warning">@word.Key (@word.Value)</span>
+                                break;
+                        }
+                    }
+                </td>
+            </tr>
+            }
+        </table>
+    </div>
+</div>
+
+@section Scripts
+                    {
+    <script src="~/js/highcharts/highcharts.js"></script>
+    <script src="~/js/highcharts/highcharts-more.js"></script>
+    <script src="~/js/highcharts/modules/heatmap.js"></script>
+    <script src="~/js/highcharts/modules/accessibility.js"></script>
+    <script src="~/js/report.js"></script>
+    <script>
+        $(function(){
+                            var hourData = JSON.parse('@Html.Raw("[" + string.Join(",", @Model.HoursActivity.Select(x => $"{{ \"Name\": \"{x.Key}\", \"Value\": [{string.Join(",", x.Value)}] }}").ToArray() ) + " ]")');
+                            var dataOverData = JSON.parse('@Html.Raw("[" + string.Join(",", @Model.DateCounts.Select(x => $"{{ \"Date\": \"{x.Key.ToString("dd-MMM-yy")}\", \"Value\": {x.Value} }}").ToArray() ) + " ]")');
+                            var usersCounts = JSON.parse('@Html.Raw("[" + string.Join(",", @Model.UsersMessages.Select(x => $"{{ \"name\": \"{x.Key}\", \"value\": {x.Value} }}").ToArray() ) + " ]")');
+                            var dayOfWeekHours = JSON.parse('@Html.Raw("[" + string.Join(",", @Model.DayOfWeekHours.Select(x =>  string.Join(",",  x.Value.Select((y, i) => $"[{i}, {(int)x.Key}, {y} ]")  ) ).ToArray() ) + " ]")');
+                            var model = {
+                hourlyData: hourData,
+                dataOverData: dataOverData,
+                usersCounts: usersCounts,
+                dayOfWeekHours: dayOfWeekHours
+            }
+
+                        Report.Init(model);
+                    }());
+    </script>
+}
